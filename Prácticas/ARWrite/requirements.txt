@@ -1,0 +1,6 @@
+python-mnist
+opencv-python
+sklearn
+keras
+tensorflow
+numpy==1.16.4

@@ -18,7 +18,7 @@ def get_user_input():
     root = tkinter.Tk()
     root.withdraw()
     result = "*"
-    while result not in string.ascii_lowercase:
+    while len(result) != 1 or result not in string.ascii_lowercase or result == "":
         # Ask the user
         result = tk.askstring("ARWrite", "Write a target letter")
         result = result.lower()
@@ -65,6 +65,8 @@ close = False
 Step 1: ask the user to choose a letter
 """
 target_letter = get_user_input()
+if not target_letter:
+    exit(0)
 # Take the image
 img = cv2.imread("{}{}.png".format(parameters.LETTERS_PATH, target_letter))
 img = cv2.resize(img, parameters.WINDOW_SIZE)
@@ -124,7 +126,8 @@ while not close:
                     x, y, width, height = cv2.boundingRect(marker)
                     grayscale_blackboard = grayscale_blackboard[y - 10:y + height + 10, x - 10:x + width + 10]
                     # Resize the image to the origin one
-                    grayscale_blackboard = cv2.resize(grayscale_blackboard, (parameters.IMG_WIDTH, parameters.IMG_HEIGHT))
+                    grayscale_blackboard = cv2.resize(grayscale_blackboard,
+                                                      (parameters.IMG_WIDTH, parameters.IMG_HEIGHT))
                     grayscale_blackboard = np.array(grayscale_blackboard)
                     # Make it binary
                     grayscale_blackboard = grayscale_blackboard.astype('float32') / 255
@@ -154,13 +157,11 @@ while not close:
             cv2.putText(frame, "Please write letter {} with a valid marker".format(target_letter),
                         parameters.TEXT_POSITION,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, parameters.BLACK_COLOR, 2)
-        # Show the frame
         concatenation = np.concatenate((frame, img), axis=1)
         cv2.imshow("ARWrite", concatenation)
         if SHOW_BLACKBOARD:
             cv2.imshow("Blackboard", blackboard)
-
-        # If 'q' key is pressed, close the app
+        # 'q' button will close the app
         if cv2.waitKey(1) & 0xFF == ord("q"):
             close = True
     except Exception as e:

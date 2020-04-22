@@ -20,7 +20,7 @@ def get_user_input():
     result = "*"
     while result not in string.ascii_lowercase:
         # Ask the user
-        result = tk.askstring("ARWrite", "Write a taget letter")
+        result = tk.askstring("ARWrite", "Write a target letter")
         result = result.lower()
     return result
 
@@ -151,7 +151,6 @@ while not close:
                 color = parameters.WRONG_COLOR
             cv2.putText(frame, text, parameters.TEXT_POSITION, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
         else:
-
             cv2.putText(frame, "Please write letter {} with a valid marker".format(target_letter),
                         parameters.TEXT_POSITION,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, parameters.BLACK_COLOR, 2)

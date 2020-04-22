@@ -4,3 +4,4 @@ sklearn
 keras
 tensorflow
 numpy==1.16.4
+tkinter-tools

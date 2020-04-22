@@ -3,6 +3,8 @@ import string
 import sys
 import traceback
 from collections import deque
+import tkinter.simpledialog as tk
+import tkinter
 
 import cv2
 import numpy as np
@@ -10,11 +12,26 @@ from keras.models import load_model
 
 import parameters
 
+
+def get_user_input():
+    # Create root window and hide it, as we are not using it.
+    root = tkinter.Tk()
+    root.withdraw()
+    result = "*"
+    while result not in string.ascii_lowercase:
+        # Ask the user
+        result = tk.askstring("ARWrite", "Write a taget letter")
+        result = result.lower()
+    return result
+
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 neural_network = None
 
 RETRY_ON_EXCEPTION = 1
-PRINT_EXCEPTIONS = 1
+PRINT_EXCEPTIONS = 0
+SHOW_BLACKBOARD = 0
+SHOW_GRAYSCALE_BLACKBOARD = 0
 
 # Load the previously compiled model
 try:
@@ -32,8 +49,6 @@ kernel = np.ones(parameters.KERNEL_SIZE, np.uint8)
 
 # Define the blackboard
 blackboard = np.zeros(parameters.BLACKBOARD_SIZE, dtype=np.uint8)
-# Define the drawing area
-drawing_area = np.zeros(parameters.DRAWING_AREA_SIZE, dtype=np.uint8)
 
 # Define a deque to store what is drawn
 points = deque(maxlen=512)
@@ -49,15 +64,13 @@ close = False
 """
 Step 1: ask the user to choose a letter
 """
-# TODO
-img = cv2.imread('a.png')
+target_letter = get_user_input()
+# Take the image
+img = cv2.imread("{}{}.png".format(parameters.LETTERS_PATH, target_letter))
 img = cv2.resize(img, parameters.WINDOW_SIZE)
-target_letter = 's'
 """
 Step 2: initialize AR stuff
 """
-
-
 while not close:
     try:
         (grabbed, frame) = camera.read()
@@ -84,36 +97,45 @@ while not close:
             center = (int(M['m10'] / M['m00']), int(M['m01'] / M['m00']))
             # Add it to our points deque
             points.appendleft(center)
+            # Draw a line to connect the points on the frame and the blackboard.
+            for i in range(1, len(points)):
+                current_point = points[i]
+                previous_point = points[i - 1]
+                cv2.line(frame, previous_point, current_point, parameters.DRAWING_COLOR, parameters.DRAWING_THICKNESS)
+                cv2.line(blackboard, previous_point, current_point, parameters.WHITE_COLOR,
+                         parameters.BACKGROUND_THICKNESS)
         else:
             # If there are not matches, the marker is not present in the image anymore, so it's time to analyse
             # the drawing (if we have points)
             if points:
-                # Draw the blackboard
-                blackboard_gray = cv2.cvtColor(blackboard, cv2.COLOR_BGR2GRAY)
-                blur1 = cv2.medianBlur(blackboard_gray, 15)
-                blur1 = cv2.GaussianBlur(blur1, parameters.KERNEL_SIZE, 0)
-                thresh1 = cv2.threshold(blur1, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-                blackboard_points = cv2.findContours(thresh1.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
-                if blackboard_points:
-                    marker = max(blackboard_points, key=cv2.contourArea)
-                    if cv2.contourArea(marker) > 1000:
-                        x, y, w, h = cv2.boundingRect(marker)
-                        drawing_area = blackboard_gray[y - 10:y + h + 10, x - 10:x + w + 10]
-                        image = cv2.resize(drawing_area, (parameters.IMG_WIDTH, parameters.IMG_HEIGHT))
-                        image = np.array(image)
-                        image = image.astype('float32') / 255
-                        prediction = neural_network.predict(image.reshape(1, 28, 28, 1))[0]
-                        prediction = np.argmax(prediction)
+                # Create a greyscale blackboard to generate a binary image
+                grayscale_blackboard = cv2.cvtColor(blackboard, cv2.COLOR_BGR2GRAY)
+                # Use Outsu's binarization (https://docs.opencv.org/3.4/d7/d4d/tutorial_py_thresholding.html):
+                blur = cv2.GaussianBlur(grayscale_blackboard, parameters.KERNEL_SIZE, 0)
+                threshold = cv2.threshold(grayscale_blackboard, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+                # Find the points
+                grayscale_blackboard_points = cv2.findContours(threshold.copy(), cv2.RETR_TREE,
+                                                               cv2.CHAIN_APPROX_NONE)[0]
+                # If there are points in the greyscale blackboard, process them
+                if grayscale_blackboard_points:
+                    # Find the marker
+                    marker = max(grayscale_blackboard_points, key=cv2.contourArea)
+                    # Resize the drawing area to the letter size leaving a threshold of 10 px
+                    x, y, width, height = cv2.boundingRect(marker)
+                    grayscale_blackboard = grayscale_blackboard[y - 10:y + height + 10, x - 10:x + width + 10]
+                    # Resize the image to the origin one
+                    grayscale_blackboard = cv2.resize(grayscale_blackboard, (parameters.IMG_WIDTH, parameters.IMG_HEIGHT))
+                    grayscale_blackboard = np.array(grayscale_blackboard)
+                    # Make it binary
+                    grayscale_blackboard = grayscale_blackboard.astype('float32') / 255
+                    if SHOW_GRAYSCALE_BLACKBOARD:
+                        cv2.imshow("Grayscale blackboard", grayscale_blackboard)
+                    # Send it to the neural network
+                    prediction = neural_network.predict(grayscale_blackboard.reshape(1, 28, 28, 1))[0]
+                    prediction = np.argmax(prediction)
                 # Clear points and blackboard
                 points.clear()
                 blackboard = np.zeros(parameters.BLACKBOARD_SIZE, dtype=np.uint8)
-
-        # Draw a line to connect the points on the frame and the blackboard.
-        for i in range(1, len(points)):
-            current_point = points[i]
-            previous_point = points[i - 1]
-            cv2.line(frame, previous_point, current_point, parameters.DRAWING_COLOR, parameters.DRAWING_THICKNESS)
-            cv2.line(blackboard, previous_point, current_point, parameters.WHITE_COLOR, parameters.BACKGROUND_THICKNESS)
 
         # Rectangle for prediction status background
         cv2.rectangle(frame, parameters.RECTANGLE_P1, parameters.RECTANGLE_P2, color=parameters.RECTANGLE_COLOR,
@@ -136,6 +158,8 @@ while not close:
         # Show the frame
         concatenation = np.concatenate((frame, img), axis=1)
         cv2.imshow("ARWrite", concatenation)
+        if SHOW_BLACKBOARD:
+            cv2.imshow("Blackboard", blackboard)
 
         # If 'q' key is pressed, close the app
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -147,7 +171,7 @@ while not close:
         if RETRY_ON_EXCEPTION:
             continue
         else:
-            exit(-1)
+            close = True
 
 camera.release()
 cv2.destroyAllWindows()

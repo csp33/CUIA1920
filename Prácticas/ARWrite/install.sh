@@ -11,13 +11,14 @@ pip3 install -r requirements.txt;
 # =================================================================
 echo "50"
 echo "# Copying files" ;
-sudo mkdir -p /opt/arwrite;
-sudo cp -R ./ /opt/arwrite;
+mkdir -p ~/.arwrite;
+cp -R ./ ~/.arwrite;
 sleep 0.5;
 # =================================================================
 echo "75"
 echo "# Creating desktop entry" ;
-sudo cp -f ARWrite.desktop /usr/share/applications/
+cp -f ARWrite.desktop ~/.local/share/applications/
+sed -ie "s|HOME|$HOME|g" "$HOME/.local/share/applications/ARWrite.desktop"
 sleep 0.5;
 # =================================================================
 echo "100"

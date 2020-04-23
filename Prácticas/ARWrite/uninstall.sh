@@ -1,13 +1,15 @@
 #!/bin/bash
+if zenity --question --text="Do you want to uninstall ARWrite?"
+then
 (
 # =================================================================
 echo "# Removing files" ;
-pkexec sudo rm -rf /opt/arwrite;
+rm -rf ~/.arwrite;
 sleep 0.5;
 # =================================================================
 echo "75"
 echo "# Removing desktop entry" ;
-sudo rm -f /usr/share/applications/ARWrite.desktop
+rm -f ~/.local/share/applications/ARWrite.desktop
 sleep 0.5;
 # =================================================================
 echo "100"
@@ -21,3 +23,4 @@ zenity --progress \
 (( $? != 0 )) && zenity --error --text="Error uninstalling ARWrite."
 
 exit 0
+fi

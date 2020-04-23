@@ -1,4 +1,6 @@
 #!/bin/bash
+if zenity --question --text="Do you want to install ARWrite?"
+then
 (
 # =================================================================
 echo "# Installing python packages" ;
@@ -32,3 +34,4 @@ zenity --progress \
 (( $? != 0 )) && zenity --error --text="Error installing ARWrite."
 
 exit 0
+fi

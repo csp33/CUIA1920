@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Uninstall ARWrite
+Comment=Uninstall
+Exec=HOME/.arwrite/uninstall.sh
+Path=HOME/.arwrite
+Icon=HOME/.arwrite/icons/uninstall.png
+Terminal=false
+Type=Application

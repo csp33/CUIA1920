@@ -20,7 +20,10 @@ sleep 0.5;
 echo "75"
 echo "# Creating desktop entry" ;
 cp -f ARWrite.desktop ~/.local/share/applications/
-sed -ie "s|HOME|$HOME|g" "$HOME/.local/share/applications/ARWrite.desktop"
+sed -i "s|HOME|$HOME|g" "$HOME/.local/share/applications/ARWrite.desktop"
+cp -f UninstallARWrite.desktop ~/.local/share/applications/
+sed -i "s|HOME|$HOME|g" "$HOME/.local/share/applications/UninstallARWrite.desktop"
+
 sleep 0.5;
 # =================================================================
 echo "100"

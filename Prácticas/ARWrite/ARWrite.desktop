@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=ARWrite
+Comment=Learn to write
+Exec=python3 HOME/.arwrite/ARWrite.py
+Path=HOME/.arwrite
+Icon=HOME/.arwrite/icons/pencil.png
+Terminal=false
+Type=Application

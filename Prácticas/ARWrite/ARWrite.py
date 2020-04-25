@@ -21,7 +21,7 @@ def get_user_input(text):
     while len(result) != 1 or result not in string.ascii_lowercase or result == "":
         # Ask the user
         result = tk.askstring("ARWrite", text)
-        if result:
+        if result or result == "":
             result = result.lower()
         else:
             return None
@@ -35,6 +35,13 @@ def get_target_letter(text):
     # Take the image
     result = cv2.imread("{}{}.png".format(parameters.LETTERS_PATH, letter))
     return cv2.resize(result, parameters.WINDOW_SIZE), letter
+
+
+def get_mask(hsv, kernel, lower_bound, upper_bound):
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+    mask = cv2.erode(mask, kernel, iterations=2)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    return cv2.dilate(mask, kernel, iterations=1)
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -93,10 +100,7 @@ while not close:
             # Convert the colors to HSV
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             # Apply erosion and dilation to find the marker
-            mask = cv2.inRange(hsv, lower_bound, upper_bound)
-            mask = cv2.erode(mask, kernel, iterations=2)
-            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-            mask = cv2.dilate(mask, kernel, iterations=1)
+            mask = get_mask(hsv, kernel, lower_bound, upper_bound)
             matches, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             # Check if there are matches
             if matches:
@@ -114,7 +118,8 @@ while not close:
                 for i in range(1, len(points)):
                     current_point = points[i]
                     previous_point = points[i - 1]
-                    cv2.line(frame, previous_point, current_point, parameters.DRAWING_COLOR, parameters.DRAWING_THICKNESS)
+                    cv2.line(frame, previous_point, current_point, parameters.DRAWING_COLOR,
+                             parameters.DRAWING_THICKNESS)
                     cv2.line(blackboard, previous_point, current_point, parameters.WHITE_COLOR,
                              parameters.BACKGROUND_THICKNESS)
             else:

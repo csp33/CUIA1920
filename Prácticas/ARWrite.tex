@@ -158,6 +158,86 @@ Para el desarrollo del proyecto se pretenden utilizar las siguientes tecnología
 		\end{itemize}
 \end{itemize}
 
+\section{Descripción detallada de la aplicación}
+
+La aplicación seguirá el siguiente esquema:
+\begin{enumerate}
+  \item La aplicación muestra un cuadro de dialogo solicitando una letra objetivo.
+  \item El usuario elige la letra objetivo.
+  \item La ventana principal de la aplicación se abre. En el lado izquierdo se ve la captura de la cámara y en el derecho la letra elegida por el usuario en fuente escolar.
+  \item El usuario toma su marcador y dibuja la letra en el aire. Cuando termine, deberá ocultar la parte azul del marcador a la cámara.
+  \item La aplicación procesa el trazo y lo envía a la red neuronal previamente entrenada para obtener una predicción.
+  \item Si la predicción es correcta, se le preguntará al usuario si desea jugar otra vez. En caso contrario, se informará de la letra que ha dibujado y se le pedirá que lo intente de nuevo.
+\end{enumerate}
+
+En esta aplicación se ha implementado el uso de un marcador de color azul, como por ejemplo un rotulador de pizarra con el tapón puesto. El resto del cuerpo del marcador deberá ser de otro color para que al girarlo se oculte.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{rotulador.jpg}
+	\caption{Ejemplo de marcador válido}
+\end{figure}
+
+Junto a la aplicación en sí, se adjunta un ejecutable para distribuciones Linux que instala la aplicación y sus dependencias además de crear las correspondientes entradas en el menú de aplicaciones (aplicación y desinstalador).
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{installer.png}
+	\caption{Instalador de ARWrite}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{installer2.png}
+	\caption{Instalador de ARWrite (2)}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{entries.png}
+	\caption{Entradas en el menú de aplicaciones}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{inputletter.png}
+	\caption{Solicitud de letra objetivo}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{app1.png}
+	\caption{Ventana principal de la app}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{letter_ok.png}
+	\caption{Letra dibujada correctamente}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{wrong_letter.png}
+	\caption{Letra incorrecta dibujada}
+\end{figure}
+
+\section{Aprendizaje del entorno}
+
+Durante el diseño y la implementación de la aplicación los entornos utilizados fueron los siguientes:
+\begin{enumerate}
+  \item \textbf{Frameworks para el desarrollo y entrenamiento de la red neuronal}
+  \begin{enumerate}
+    \item Keras \cite{Keras}. Es una librería escrita sobre TensorFlow \cite{tensorflow} que permite la implementación a alto nivel de redes neuronales. En la apliacción se utilizarán redes neuronales de tipo convolucional, con las que ya he trabajado antes (\url{https://github.com/csp98/image-recognition})
+    \item Numpy \cite{numpy}. Biblioteca para procesamiento científico de datos. Es necesaria para trabajar con varias dimensiones en el desarrollo de la red neuronal.
+  \end{enumerate}
+  \item \textbf{Framework para realidad aumentada}: OpenCV \cite{opencv}. Usada para capturar la imagen desde la cámara, identificar el marcador, dibujar los trazos en la pantalla, etc. Es la piedra angular de la aplicación.
+  \item \textbf{Frameworks para manejar interfaces gráficas}
+    \begin{enumerate}
+      \item Tkinter \cite{tkinter}. Biblioteca de Python \cite{python} que utiliza para mostrar la ventana en la que se solicita la letra objetivo al usuario.
+      \item Zenity \cite{zenity}. Aplicación de Linux que se usa para crear la interfaz gráfica del instalador y desinstalador.
+      \item Pkexec \cite{pkexec}. Utilidad gráfica de Linux para solicitar permisos de superusuario. Se usa en el instalador.
+    \end{enumerate}
+
+\end{enumerate}
+
+
 
 \newpage
 \bibliographystyle{apacite}
